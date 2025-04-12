@@ -39,11 +39,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     } elseif (isset($_GET['complete'])) {
         $id = (int)$_GET['complete'];
-        // Verificar se a tarefa pertence ao usuário
-        $check = $conn->query("SELECT id FROM tarefas WHERE id = $id AND idUsuario = {$_SESSION['usuario_id']}");
-        if ($check->num_rows > 0) {
-            $conn->query("UPDATE tarefas SET concluida = 1 WHERE id = $id");
+        
+        // Verificar existência e permissão
+        $stmt = $conn->prepare("SELECT id, concluida FROM tarefas WHERE id = ? AND idUsuario = ?");
+        $stmt->bind_param("ii", $id, $_SESSION['usuario_id']);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows > 0) {
+            $tarefa = $result->fetch_assoc();
+            $novo_status = $tarefa['concluida'] ? 0 : 1;
+            
+            // Atualizar status
+            $stmt_update = $conn->prepare("UPDATE tarefas SET concluida = ? WHERE id = ?");
+            $stmt_update->bind_param("ii", $novo_status, $id);
+            $stmt_update->execute();
         }
+        
         header("Location: index.php");
         exit;
     }
