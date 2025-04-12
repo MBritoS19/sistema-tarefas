@@ -1,5 +1,6 @@
 <?php
 require 'config.php';
+verificarLogin(); // Esta linha deve vir ANTES de qualquer output
 
 // Operações CRUD
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
