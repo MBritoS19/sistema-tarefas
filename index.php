@@ -1,8 +1,7 @@
 <?php
 require 'config.php';
-verificarLogin(); // Esta linha deve vir ANTES de qualquer output
+verificarLogin();
 
-// Operações CRUD
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $usuario_id = $_SESSION['usuario_id'];
     if (isset($_POST['add'])) {
@@ -28,10 +27,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
     }
 } else {
-    // Operações GET (delete e complete)
     if (isset($_GET['delete'])) {
         $id = (int)$_GET['delete'];
-        // Verificar se a tarefa pertence ao usuário
         $check = $conn->query("SELECT id FROM tarefas WHERE id = $id AND idUsuario = {$_SESSION['usuario_id']}");
         if ($check->num_rows > 0) {
             $conn->query("DELETE FROM tarefas WHERE id = $id");
@@ -40,8 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     } elseif (isset($_GET['complete'])) {
         $id = (int)$_GET['complete'];
-        
-        // Verificar existência e permissão
+    
         $stmt = $conn->prepare("SELECT id, concluida FROM tarefas WHERE id = ? AND idUsuario = ?");
         $stmt->bind_param("ii", $id, $_SESSION['usuario_id']);
         $stmt->execute();
@@ -123,9 +119,9 @@ if (!$tarefas) {
                     </span>
 
                     <div class="d-flex gap-3">
-                        <a href="criar_usuario.php" class="btn btn-outline-primary btn-sm">
+                        <a href="gerenciar_usuarios.php" class="btn btn-outline-primary btn-sm">
                             <i class="bi bi-person-plus me-1"></i>
-                            <span class="d-none d-md-inline">Novo Usuário</span>
+                            <span class="d-none d-md-inline">Gerenciar Usuários</span>
                         </a>
 
                         <a href="logout.php" class="btn btn-danger btn-sm">
