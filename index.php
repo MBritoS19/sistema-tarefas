@@ -2,6 +2,12 @@
 require 'config.php';
 verificarLogin();
 
+$editarTarefa = null;
+if (isset($_GET['edit'])) {
+    $id = (int)$_GET['edit'];
+    $editarTarefa = $conn->query("SELECT * FROM tarefas WHERE id = $id AND idUsuario = {$_SESSION['usuario_id']}")->fetch_assoc();
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $usuario_id = $_SESSION['usuario_id'];
     if (isset($_POST['add'])) {
@@ -16,15 +22,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
     } elseif (isset($_POST['update'])) {
         $id = (int)$_POST['id'];
-        $stmt = $conn->prepare("UPDATE tarefas SET titulo=?, descricao=?, concluida=? WHERE id=?");
+        $stmt = $conn->prepare("UPDATE tarefas SET titulo=?, descricao=? WHERE id=?");
         $stmt->bind_param(
-            "ssii",
+            "ssi",
             $_POST['titulo'],
             $_POST['descricao'],
-            $_POST['concluida'],
             $id
         );
         $stmt->execute();
+        header("Location: index.php");
+        exit;
     }
 } else {
     if (isset($_GET['delete'])) {
@@ -37,22 +44,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     } elseif (isset($_GET['complete'])) {
         $id = (int)$_GET['complete'];
-    
+
         $stmt = $conn->prepare("SELECT id, concluida FROM tarefas WHERE id = ? AND idUsuario = ?");
         $stmt->bind_param("ii", $id, $_SESSION['usuario_id']);
         $stmt->execute();
         $result = $stmt->get_result();
-        
+
         if ($result->num_rows > 0) {
             $tarefa = $result->fetch_assoc();
             $novo_status = $tarefa['concluida'] ? 0 : 1;
-            
+
             // Atualizar status
             $stmt_update = $conn->prepare("UPDATE tarefas SET concluida = ? WHERE id = ?");
             $stmt_update->bind_param("ii", $novo_status, $id);
             $stmt_update->execute();
         }
-        
+
         header("Location: index.php");
         exit;
     }
@@ -138,26 +145,33 @@ if (!$tarefas) {
             Gerenciador de Tarefas
         </h2>
 
-        <!-- Formulário de Adição -->
+        <!-- Formulário de Adição/Edição -->
         <div class="card mb-4 border-primary">
             <div class="card-header bg-primary text-white">
-                Adicionar Nova Tarefa
+                <?= $editarTarefa ? 'Editar Tarefa' : 'Nova Tarefa' ?>
             </div>
             <div class="card-body">
                 <form method="POST">
+                    <?php if ($editarTarefa): ?>
+                        <input type="hidden" name="id" value="<?= $editarTarefa['id'] ?>">
+                    <?php endif; ?>
+
                     <div class="row g-3">
                         <div class="col-md-8">
                             <input type="text" name="titulo" class="form-control"
-                                placeholder="Digite o título da tarefa" required>
+                                placeholder="Título da tarefa"
+                                value="<?= $editarTarefa['titulo'] ?? '' ?>" required>
                         </div>
                         <div class="col-md-4">
-                            <button type="submit" name="add" class="btn btn-success w-100">
-                                <i class="bi bi-save"></i> Salvar
+                            <button type="submit" name="<?= $editarTarefa ? 'update' : 'add' ?>"
+                                class="btn btn-<?= $editarTarefa ? 'warning' : 'success' ?> w-100">
+                                <i class="bi bi-save"></i>
+                                <?= $editarTarefa ? 'Atualizar' : 'Salvar' ?>
                             </button>
                         </div>
                         <div class="col-12">
                             <textarea name="descricao" class="form-control"
-                                placeholder="Descrição detalhada..." rows="3"></textarea>
+                                placeholder="Descrição detalhada..." rows="3"><?= $editarTarefa['descricao'] ?? '' ?></textarea>
                         </div>
                     </div>
                 </form>
@@ -215,7 +229,7 @@ if (!$tarefas) {
                                     </td>
                                     <td class="pe-4 text-end">
                                         <div class="d-flex gap-2 justify-content-end">
-                                            <a href="edit.php?id=<?= $tarefa['id'] ?>"
+                                            <a href="?edit=<?= $tarefa['id'] ?>"
                                                 class="btn btn-sm btn-light border"
                                                 title="Editar">
                                                 <i class="bi bi-pencil"></i>
