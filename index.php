@@ -17,7 +17,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (isset($_POST['update'])) {
         $id = (int)$_POST['id'];
         $stmt = $conn->prepare("UPDATE tarefas SET titulo=?, descricao=?, concluida=? WHERE id=?");
-        $stmt->bind_param("ssii",
+        $stmt->bind_param(
+            "ssii",
             $_POST['titulo'],
             $_POST['descricao'],
             $_POST['concluida'],
@@ -36,8 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         header("Location: index.php");
         exit;
-    }
-    elseif (isset($_GET['complete'])) {
+    } elseif (isset($_GET['complete'])) {
         $id = (int)$_GET['complete'];
         // Verificar se a tarefa pertence ao usuário
         $check = $conn->query("SELECT id FROM tarefas WHERE id = $id AND idUsuario = {$_SESSION['usuario_id']}");
@@ -71,6 +71,7 @@ if (!$tarefas) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CRUD de Tarefas</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
         @media (max-width: 576px) {
 
@@ -99,76 +100,122 @@ if (!$tarefas) {
 
 <body class="bg-light">
     <div class="container mt-5">
-        <nav class="navbar navbar-light bg-light mb-4">
+        <!-- Código da Navbar -->
+        <nav class="navbar navbar-light bg-light mb-4 shadow-sm">
             <div class="container">
-                <span class="navbar-brand">Olá, <?= $_SESSION['usuario_nome'] ?></span>
-                <a href="logout.php" class="btn btn-danger">Sair</a>
+                <div class="d-flex justify-content-between w-100 align-items-center">
+                    <span class="navbar-brand text-primary fw-bold">
+                        <i class="bi bi-list-task me-2"></i>
+                        <?= $_SESSION['usuario_nome'] ?>
+                    </span>
+
+                    <div class="d-flex gap-3">
+                        <a href="criar_usuario.php" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-person-plus me-1"></i>
+                            <span class="d-none d-md-inline">Novo Usuário</span>
+                        </a>
+
+                        <a href="logout.php" class="btn btn-danger btn-sm">
+                            <i class="bi bi-box-arrow-right me-1"></i>
+                            <span class="d-none d-md-inline">Sair</span>
+                        </a>
+                    </div>
+                </div>
             </div>
         </nav>
 
-        <h1 class="mb-4">Gerenciador de Tarefas</h1>
+        <h2 class="mb-4 text-primary">
+            <i class="bi bi-journal-plus"></i>
+            Gerenciador de Tarefas
+        </h2>
 
         <!-- Formulário de Adição -->
-        <div class="card mb-4">
+        <div class="card mb-4 border-primary">
+            <div class="card-header bg-primary text-white">
+                Adicionar Nova Tarefa
+            </div>
             <div class="card-body">
                 <form method="POST">
-                    <div class="mb-3">
-                        <input type="text" name="titulo" class="form-control" placeholder="Título" required>
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <input type="text" name="titulo" class="form-control"
+                                placeholder="Digite o título da tarefa" required>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" name="add" class="btn btn-success w-100">
+                                <i class="bi bi-save"></i> Salvar
+                            </button>
+                        </div>
+                        <div class="col-12">
+                            <textarea name="descricao" class="form-control"
+                                placeholder="Descrição detalhada..." rows="3"></textarea>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <textarea name="descricao" class="form-control" placeholder="Descrição" rows="2"></textarea>
-                    </div>
-                    <button type="submit" name="add" class="btn btn-primary">Adicionar Tarefa</button>
                 </form>
             </div>
         </div>
 
         <!-- Lista de Tarefas -->
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Lista de Tarefas</h5>
+        <div class="card shadow">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-list-task"></i>
+                    Tarefas Registradas
+                </h5>
+            </div>
+            <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
                             <tr>
-                                <th style="min-width: 120px;">Título</th>
+                                <th class="ps-4">Título</th>
                                 <th class="d-none d-md-table-cell">Descrição</th>
-                                <th style="min-width: 110px;">Criado Por</th>
-                                <th style="min-width: 110px;">Status</th>
-                                <th class="d-none d-sm-table-cell">Data de criação</th>
-                                <th style="min-width: 140px;">Ações</th>
+                                <th>Criado Por</th>
+                                <th>Status</th>
+                                <th class="d-none d-sm-table-cell">Criação</th>
+                                <th class="pe-4 text-end">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php while ($tarefa = $tarefas->fetch_assoc()): ?>
-                                <tr>
-                                    <td class="text-truncate" style="max-width: 150px;"><?= htmlspecialchars($tarefa['titulo']) ?></td>
-                                    <td class="d-none d-md-table-cell"><?= htmlspecialchars($tarefa['descricao']) ?></td>
-                                    <td><?= htmlspecialchars($tarefa['criador']) ?></td>
+                                <tr class="<?= $tarefa['concluida'] ? 'table-success' : '' ?>">
+                                    <td class="ps-4 text-truncate" title="<?= htmlspecialchars($tarefa['titulo']) ?>">
+                                        <?= htmlspecialchars($tarefa['titulo']) ?>
+                                    </td>
+                                    <td class="d-none d-md-table-cell">
+                                        <span class="text-muted small">
+                                            <?= htmlspecialchars($tarefa['descricao']) ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">
+                                            <?= htmlspecialchars($tarefa['criador']) ?>
+                                        </span>
+                                    </td>
                                     <td>
                                         <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" role="switch"
-                                                <?= $tarefa['concluida'] ? 'checked' : '' ?> disabled>
-                                            <span class="ms-2 d-inline d-sm-none"><?= $tarefa['concluida'] ? '✓' : '✗' ?></span>
-                                            <span class="ms-2 d-none d-sm-inline"><?= $tarefa['concluida'] ? 'Concluída' : 'Pendente' ?></span>
+                                            <input type="checkbox" class="form-check-input" role="switch"
+                                                <?= $tarefa['concluida'] ? 'checked' : '' ?>
+                                                onclick="window.location.href='?complete=<?= $tarefa['id'] ?>'">
                                         </div>
                                     </td>
-                                    <td class="d-none d-sm-table-cell"><?= date('d/m/Y H:i', strtotime($tarefa['data_criacao'])) ?></td>
-                                    <td>
-                                        <div class="d-flex flex-column flex-sm-row gap-1">
-                                            <?php if (!$tarefa['concluida']): ?>
-                                                <a href="?complete=<?= $tarefa['id'] ?>" class="btn btn-sm btn-success" onclick="return confirm('Marcar como concluída?')">
-                                                    <span class="d-none d-sm-inline">Finalizar</span>
-                                                    <span class="d-inline d-sm-none">✓</span>
-                                                </a>
-                                            <?php endif; ?>
-                                            <a href="edit.php?id=<?= $tarefa['id'] ?>" class="btn btn-sm btn-warning">
-                                                <span class="d-none d-sm-inline">Editar</span>
-                                                <span class="d-inline d-sm-none">✎</span>
+                                    <td class="d-none d-sm-table-cell">
+                                        <small class="text-muted">
+                                            <?= date('d/m/Y H:i', strtotime($tarefa['data_criacao'])) ?>
+                                        </small>
+                                    </td>
+                                    <td class="pe-4 text-end">
+                                        <div class="d-flex gap-2 justify-content-end">
+                                            <a href="edit.php?id=<?= $tarefa['id'] ?>"
+                                                class="btn btn-sm btn-light border"
+                                                title="Editar">
+                                                <i class="bi bi-pencil"></i>
                                             </a>
-                                            <a href="?delete=<?= $tarefa['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza?')">
-                                                <span class="d-none d-sm-inline">Excluir</span>
-                                                <span class="d-inline d-sm-none">🗑</span>
+                                            <a href="?delete=<?= $tarefa['id'] ?>"
+                                                class="btn btn-sm btn-danger"
+                                                title="Excluir"
+                                                onclick="return confirm('Tem certeza que deseja excluir permanentemente?')">
+                                                <i class="bi bi-trash"></i>
                                             </a>
                                         </div>
                                     </td>
