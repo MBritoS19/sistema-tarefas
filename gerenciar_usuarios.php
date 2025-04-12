@@ -2,7 +2,6 @@
 require 'config.php';
 verificarLogin();
 
-// Operações CRUD
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $dados = [
         'nome' => $_POST['nome'],
@@ -12,12 +11,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'ativo' => isset($_POST['ativo']) ? 1 : 0
     ];
 
-    // Senha só se for nova
     if (!empty($_POST['senha'])) {
         $dados['senha'] = password_hash($_POST['senha'], PASSWORD_DEFAULT);
     }
 
-    if (isset($_POST['id'])) { // Edição
+    if (isset($_POST['id'])) {
         $id = (int)$_POST['id'];
         $sql = "UPDATE usuarios SET 
                 nome = ?, email = ?, cargo = ?, setor = ?, ativo = ?"
@@ -45,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header("Location: criar_usuario.php");
         exit;
 
-    } else { // Criação
+    } else {
         $stmt = $conn->prepare("INSERT INTO usuarios 
                 (nome, email, senha, cargo, setor, ativo) 
                 VALUES (?, ?, ?, ?, ?, ?)");
@@ -73,7 +71,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->execute();
 }
 
-// Buscar todos usuários
 $usuarios = $conn->query("SELECT * FROM usuarios ORDER BY nome");
 ?>
 
@@ -98,7 +95,7 @@ $usuarios = $conn->query("SELECT * FROM usuarios ORDER BY nome");
             </div>
 
             <div class="card-body">
-                <!-- Formulário -->
+
                 <form method="POST" class="mb-5">
                     <?php if(isset($_GET['edit'])): 
                         $editUser = $conn->query("SELECT * FROM usuarios WHERE id = ".(int)$_GET['edit'])->fetch_assoc();
@@ -156,7 +153,6 @@ $usuarios = $conn->query("SELECT * FROM usuarios ORDER BY nome");
                     </div>
                 </form>
 
-                <!-- Lista de Usuários -->
                 <div class="table-responsive">
                     <table class="table table-hover align-middle">
                         <thead class="table-light">

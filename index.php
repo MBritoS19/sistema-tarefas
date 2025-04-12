@@ -54,7 +54,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $tarefa = $result->fetch_assoc();
             $novo_status = $tarefa['concluida'] ? 0 : 1;
 
-            // Atualizar status
             $stmt_update = $conn->prepare("UPDATE tarefas SET concluida = ? WHERE id = ?");
             $stmt_update->bind_param("ii", $novo_status, $id);
             $stmt_update->execute();
@@ -65,7 +64,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Buscar todas as tarefas
 $tarefas = $conn->query("
     SELECT t.*, u.nome as criador 
     FROM tarefas t
@@ -123,7 +121,6 @@ if (!$tarefas) {
             Gerenciador de Tarefas
         </h2>
 
-        <!-- Formulário de Adição/Edição -->
         <div class="card mb-4 border-primary">
             <div class="card-header bg-primary text-white">
                 <?= $editarTarefa ? 'Editar Tarefa' : 'Nova Tarefa' ?>
@@ -156,7 +153,6 @@ if (!$tarefas) {
             </div>
         </div>
 
-        <!-- Lista de Tarefas -->
         <div class="card shadow">
             <div class="card-header bg-light">
                 <h5 class="card-title mb-0">
