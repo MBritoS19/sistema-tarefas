@@ -140,8 +140,8 @@ $usuarios = $conn->query("SELECT * FROM usuarios ORDER BY nome");
                             </select>
                         </div>
 
-                        <div class="col-md-3 form-check form-switch mt-2">
-                            <input type="checkbox" name="ativo" class="form-check-input" role="switch" 
+                        <div class="col-md-3 form-check form-switch d-flex align-items-center mt-3 ">
+                            <input type="checkbox" name="ativo" class="form-check-input col-md-2 me-2" role="switch" 
                                 id="ativo" <?= ($editUser['ativo'] ?? 0) ? 'checked' : '' ?>>
                             <label class="form-check-label" for="ativo">Ativo</label>
                         </div>
