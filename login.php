@@ -9,7 +9,7 @@ if (isset($_SESSION['usuario_id'])) {
 
 // Limitar tentativas de login
 $max_tentativas = 5;
-$bloqueio_tempo = 300; // 5 minutos
+$bloqueio_tempo = 300;
 
 if (!isset($_SESSION['tentativas'])) {
     $_SESSION['tentativas'] = 0;
@@ -95,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                             </div>
                         <?php endif; ?>
-
+                            
                         <form method="POST" class="needs-validation" novalidate>
                             <div class="mb-3">
                                 <label for="email" class="form-label">E-mail</label>

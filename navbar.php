@@ -3,19 +3,21 @@
     <div class="container">
         <div class="d-flex justify-content-between w-100 align-items-center">
             <div class="d-flex gap-3 align-items-center">
+                <!-- Caso esteja fora do index mostra o botão de voltar -->
                 <?php if(basename($_SERVER['PHP_SELF']) !== 'index.php'): ?>
                     <a href="index.php" class="btn btn-outline-secondary btn-sm">
                         <i class="bi bi-arrow-left"></i>
                         <span class="d-none d-md-inline">Voltar</span>
                     </a>
                 <?php endif; ?>
-                
+                <!-- Nome do usuario logado -->
                 <span class="navbar-brand text-primary fw-bold">
                     <i class="bi bi-list-task me-2"></i>
                     <?= $_SESSION['usuario_nome'] ?>
                 </span>
             </div>
-
+            
+            <!-- Opções de módulos -->
             <div class="d-flex gap-3">
                 <a href="gerenciar_usuarios.php" class="btn btn-outline-primary btn-sm">
                     <i class="bi bi-people"></i>

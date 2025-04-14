@@ -70,19 +70,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         echo "<script>alert('Erro ao cadastrar/atualizar usuário.');</script>";
     }
+
+// Excluir um usuário
 } elseif (isset($_GET['delete'])) {
     $id = (int)$_GET['delete'];
     $stmt = $conn->prepare("DELETE FROM usuarios WHERE id = ?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
 
+    // Se a exclusão foi bem-sucedida, redireciona para a página de gerenciamento
+    if ($stmt->affected_rows > 0) {
+        header("Location: gerenciar_usuarios.php");
+        exit;
+    } else {
+        echo "<script>alert('Erro ao excluir usuário.');</script>";
+    }
+
+// Alternar o status de ativo/inativo
 } elseif (isset($_GET['toggle'])) {
     $id = (int)$_GET['toggle'];
     $stmt = $conn->prepare("UPDATE usuarios SET ativo = NOT ativo WHERE id = ?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
+
+    // Se a atualização foi bem-sucedida, redireciona para a página de gerenciamento
+    if ($stmt->affected_rows > 0) {
+        header("Location: gerenciar_usuarios.php");
+        exit;
+    } else {
+        echo "<script>alert('Erro ao alternar status do usuário.');</script>";
+    }
 }
 
+// Busca todos os usuários para exibir na tabela
 $usuarios = $conn->query("SELECT * FROM usuarios ORDER BY nome");
 ?>
 
@@ -107,7 +127,8 @@ $usuarios = $conn->query("SELECT * FROM usuarios ORDER BY nome");
             </div>
 
             <div class="card-body">
-
+                
+                <!-- Formulário para adicionar/editar usuários -->
                 <form method="POST" class="mb-5">
                     <?php if(isset($_GET['edit'])): 
                         $editUser = $conn->query("SELECT * FROM usuarios WHERE id = ".(int)$_GET['edit'])->fetch_assoc();
@@ -165,6 +186,7 @@ $usuarios = $conn->query("SELECT * FROM usuarios ORDER BY nome");
                     </div>
                 </form>
 
+                <!-- Tabela de usuarios -->
                 <div class="table-responsive">
                     <table class="table table-hover align-middle">
                         <thead class="table-light">

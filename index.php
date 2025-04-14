@@ -3,13 +3,17 @@ require 'config.php';
 verificarLogin();
 
 $editarTarefa = null;
+// Pega a tarefa a ser editada, se houver
 if (isset($_GET['edit'])) {
     $id = (int)$_GET['edit'];
     $editarTarefa = $conn->query("SELECT * FROM tarefas WHERE id = $id AND idUsuario = {$_SESSION['usuario_id']}")->fetch_assoc();
 }
 
+// Recebe os dados do formulário
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $usuario_id = $_SESSION['usuario_id'];
+
+    // Adiciona a tarefa
     if (isset($_POST['add'])) {
         $stmt = $conn->prepare("INSERT INTO tarefas (titulo, descricao, idUsuario) 
                                VALUES (?, ?, ?)");
@@ -20,6 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $usuario_id,
         );
         $stmt->execute();
+
+    // Atualiza a tarefa
     } elseif (isset($_POST['update'])) {
         $id = (int)$_POST['id'];
         $stmt = $conn->prepare("UPDATE tarefas SET titulo=?, descricao=? WHERE id=?");
@@ -34,6 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 } else {
+    // Verifica se a tarefa existe antes de tentar deletar
     if (isset($_GET['delete'])) {
         $id = (int)$_GET['delete'];
         $check = $conn->query("SELECT id FROM tarefas WHERE id = $id AND idUsuario = {$_SESSION['usuario_id']}");
@@ -42,6 +49,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         header("Location: index.php");
         exit;
+
+        // Verifica se a tarefa existe antes de tentar completar
     } elseif (isset($_GET['complete'])) {
         $id = (int)$_GET['complete'];
 
@@ -64,6 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+// Consulta as tarefas do usuário logado
 $tarefas = $conn->query("
     SELECT t.*, u.nome as criador 
     FROM tarefas t
@@ -121,6 +131,8 @@ if (!$tarefas) {
             Gerenciador de Tarefas
         </h2>
 
+        
+        <!-- Formulario para adicionar ou editar tarefas -->
         <div class="card mb-4 border-primary">
             <div class="card-header bg-primary text-white">
                 <?= $editarTarefa ? 'Editar Tarefa' : 'Nova Tarefa' ?>
@@ -152,7 +164,8 @@ if (!$tarefas) {
                 </form>
             </div>
         </div>
-
+        
+        <!-- Lista de tarefas -->
         <div class="card shadow">
             <div class="card-header bg-light">
                 <h5 class="card-title mb-0">
