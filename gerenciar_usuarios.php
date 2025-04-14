@@ -2,6 +2,7 @@
 require 'config.php';
 verificarLogin();
 
+// Recebe os dados do formulário
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $dados = [
         'nome' => $_POST['nome'],
@@ -11,10 +12,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'ativo' => isset($_POST['ativo']) ? 1 : 0
     ];
 
+    // Se a senha não estiver vazia, faz o hash da senha
     if (!empty($_POST['senha'])) {
         $dados['senha'] = password_hash($_POST['senha'], PASSWORD_DEFAULT);
     }
 
+    // Se o ID estiver definido, atualiza o usuário existente
+    // Caso contrário, insere um novo usuário
     if (isset($_POST['id'])) {
         $id = (int)$_POST['id'];
         $sql = "UPDATE usuarios SET 
@@ -40,10 +44,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bind_param($tipos, ...$valores);
         $stmt->execute();
 
-        header("Location: criar_usuario.php");
+        header("Location: gerenciar_usuarios.php");
         exit;
 
     } else {
+
         $stmt = $conn->prepare("INSERT INTO usuarios 
                 (nome, email, senha, cargo, setor, ativo) 
                 VALUES (?, ?, ?, ?, ?, ?)");
@@ -58,6 +63,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
     }
 
+// Se o usuário foi inserido ou atualizado com sucesso, redireciona para a página de gerenciamento
+    if ($stmt->affected_rows > 0) {
+        header("Location: gerenciar_usuarios.php");
+        exit;
+    } else {
+        echo "<script>alert('Erro ao cadastrar/atualizar usuário.');</script>";
+    }
 } elseif (isset($_GET['delete'])) {
     $id = (int)$_GET['delete'];
     $stmt = $conn->prepare("DELETE FROM usuarios WHERE id = ?");
@@ -180,19 +192,19 @@ $usuarios = $conn->query("SELECT * FROM usuarios ORDER BY nome");
                                 </td>
                                 <td class="text-end">
                                     <div class="d-flex gap-2 justify-content-end">
-                                        <a href="criar_usuario.php?edit=<?= $usuario['id'] ?>" 
+                                        <a href="gerenciar_usuarios.php?edit=<?= $usuario['id'] ?>" 
                                             class="btn btn-sm btn-primary"
                                             title="Editar">
                                             <i class="bi bi-pencil"></i>
                                         </a>
 
-                                        <a href="criar_usuario.php?toggle=<?= $usuario['id'] ?>" 
+                                        <a href="gerenciar_usuarios.php?toggle=<?= $usuario['id'] ?>" 
                                             class="btn btn-sm btn-<?= $usuario['ativo'] ? 'warning' : 'success' ?>"
                                             title="<?= $usuario['ativo'] ? 'Desativar' : 'Ativar' ?>">
                                             <i class="bi bi-power"></i>
                                         </a>
 
-                                        <a href="criar_usuario.php?delete=<?= $usuario['id'] ?>" 
+                                        <a href="gerenciar_usuarios.php?delete=<?= $usuario['id'] ?>" 
                                             class="btn btn-sm btn-danger"
                                             title="Excluir"
                                             onclick="return confirm('Tem certeza? Esta ação é irreversível!')">
